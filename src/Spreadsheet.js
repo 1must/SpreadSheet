@@ -44,7 +44,7 @@ class SpreadSheet extends React.Component{
         const json = JSON.stringify(this.sheet)
         const promise = setTimeout(()=>{
             this.worker.terminate()
-            this.sheet = localStorage.getItem('')
+            this.sheet = JSON.parse(localStorage.getItem(''))
             if(!this.sheet) this.reset()
             this.worker = new Worker(worker_script)
             this.calc()
