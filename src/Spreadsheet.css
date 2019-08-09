@@ -10,3 +10,7 @@ input { position: absolute; border: 0; padding: 0; width: 120px; height: 1.3em;
     font-size: 100%; color: transparent; background: transparent; }
 input:focus { color: #111; background: #efe; }
 input:focus + div { white-space: nowrap; }
+
+.container{
+    padding: 8px;
+}

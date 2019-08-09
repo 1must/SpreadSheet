@@ -11,7 +11,7 @@ class SpreadSheet extends React.Component{
         this.state = {
             col,
             row,
-            sheet:{},
+            sheet:{A1: 1874, B1: '+', C1: 2046, D1: '⇒', E1: '=A1+C1'},
             vals: {},
             errs:{}
         }
@@ -21,12 +21,16 @@ class SpreadSheet extends React.Component{
 
     }
 
+    componentDidMount() {
+        this.calc()
+    }
+
     reset = ()=> {
         this.setState({
-            sheet:{},
+            sheet:{A1: 1874, B1: '+', C1: 2046, D1: '⇒', E1: '=A1+C1'},
             errs:{},
             vals:{}
-        })
+        }, this.calc)
     }
 
 
@@ -90,8 +94,8 @@ class SpreadSheet extends React.Component{
     render(){
         const {row, col, errs, vals, sheet} = this.state
         return (
-            <div>
-                <div></div>
+            <div className='container'>
+                <div>=开头表示计算，比如=A1+C1表示计算A1格子和C1格子的和</div>
                 <table>
                     <thead>
                     <tr>
