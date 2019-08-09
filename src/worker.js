@@ -3,7 +3,6 @@ const workercode = ()=> {
     // eslint-disable-next-line no-restricted-globals
     self.onmessage = ({data}) => {
         // eslint-disable-next-line no-restricted-globals
-        console.log('woker this ', data)
         sheet  = data
         vals = {}
         errs = {}
