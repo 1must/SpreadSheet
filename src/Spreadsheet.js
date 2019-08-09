@@ -7,10 +7,10 @@ class SpreadSheet extends React.Component{
         super(props)
         let col = Array.from({length:8}).map((a,i)=>String.fromCharCode('A'.charCodeAt(0)+i))
         let row = Array.from({length:20}).map((a,i)=>i+1)
-        this.sheet = {}
         this.state = {
             col,
             row,
+            sheet:{},
             vals: {},
             errs:{}
         }
@@ -21,12 +21,8 @@ class SpreadSheet extends React.Component{
     }
 
     reset = ()=>{
-        let col = Array.from({length:8}).map((a,i)=>String.fromCharCode('A'.charCodeAt(0)+i))
-        let row = Array.from({length:20}).map((a,i)=>i+1)
-        this.sheet = {}
         this.setState({
-            col,
-            row,
+            sheet:{},
             errs:{},
             vals:{}
         })
@@ -40,29 +36,36 @@ class SpreadSheet extends React.Component{
         }
     }
 
-    calc=this.debounce(()=>{
-        const json = JSON.stringify(this.sheet)
+    calc=()=>{
+        const {sheet} = this.state
+        const json = JSON.stringify(sheet)
         const promise = setTimeout(()=>{
+            console.log('over time')
             this.worker.terminate()
-            this.sheet = JSON.parse(localStorage.getItem(''))
-            if(!this.sheet) this.reset()
+            let storedSheet = JSON.parse(localStorage.getItem(''))
+            if(!storedSheet) this.reset()
             this.worker = new Worker(worker_script)
-            this.calc()
+            this.setState({sheet:storedSheet}, this.calc)
         }, 99)
 
         this.worker.onmessage=({data})=>{
             clearTimeout(promise)
             localStorage.setItem('', json)
+            console.log(data)
             this.setState({errs:data[0], vals:data[1]})
         }
 
-        this.worker.postMessage(this.sheet)
-    }, 99)
+        this.worker.postMessage(sheet)
+    }
+
+    debouncedCalc = this.debounce(this.calc, 100)
 
     hangleInputChangeWrapper = (name)=>{
          return (event)=>{
-             this.sheet[name] = event.target.value
-             this.calc()
+             const {sheet} = this.state
+             let nextSheet = {...sheet}
+             nextSheet[name] = event.target.value
+             this.setState({sheet:nextSheet}, this.debouncedCalc)
         }
     }
 
@@ -81,7 +84,7 @@ class SpreadSheet extends React.Component{
 
 
     render(){
-        const {row, col, errs, vals} = this.state
+        const {row, col, errs, vals, sheet} = this.state
         return (
         <table>
             <thead>
@@ -99,9 +102,9 @@ class SpreadSheet extends React.Component{
                         <th>{r}</th>
                         {col.map((c)=>{
                             let name = c+''+r
-                            let value = this.sheet[name]||''
+                            let value = sheet[name]||''
                             return(<td key={c} className={value[0]==='='?'formula' : undefined}>
-                                <input id={name} onChange={this.hangleInputChangeWrapper(name)} onKeyDown={this.handleKeyDownWrapper(r, c)}/>
+                                <input id={name} onChange={this.hangleInputChangeWrapper(name)} value={value} onKeyDown={this.handleKeyDownWrapper(r, c)}/>
                                 <div className={value[0]?'text':undefined}>{errs[name]||vals[name]}</div>
                             </td>)
                         })}
