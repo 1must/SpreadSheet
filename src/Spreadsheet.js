@@ -7,6 +7,7 @@ class SpreadSheet extends React.Component{
         super(props)
         let col = Array.from({length:8}).map((a,i)=>String.fromCharCode('A'.charCodeAt(0)+i))
         let row = Array.from({length:20}).map((a,i)=>i+1)
+        this.sheet = {}
         this.state = {
             col,
             row,
@@ -20,13 +21,14 @@ class SpreadSheet extends React.Component{
 
     }
 
-    reset = ()=>{
+    reset = ()=> {
         this.setState({
             sheet:{},
             errs:{},
             vals:{}
         })
     }
+
 
     debounce = (func, time)=>{
         let timer = null
@@ -44,8 +46,9 @@ class SpreadSheet extends React.Component{
             this.worker.terminate()
             let storedSheet = JSON.parse(localStorage.getItem(''))
             if(!storedSheet) this.reset()
+            else this.setState({sheet:storedSheet})
             this.worker = new Worker(worker_script)
-            this.setState({sheet:storedSheet}, this.calc)
+            this.calc()
         }, 99)
 
         this.worker.onmessage=({data})=>{
@@ -65,7 +68,8 @@ class SpreadSheet extends React.Component{
              const {sheet} = this.state
              let nextSheet = {...sheet}
              nextSheet[name] = event.target.value
-             this.setState({sheet:nextSheet}, this.debouncedCalc)
+             this.setState({sheet:nextSheet})
+             this.debouncedCalc()
         }
     }
 
@@ -86,32 +90,35 @@ class SpreadSheet extends React.Component{
     render(){
         const {row, col, errs, vals, sheet} = this.state
         return (
-        <table>
-            <thead>
-            <tr>
-                <th>
-                    <button onClick={this.reset}>↻</button>
-                </th>
-                {col.map(c=>(<th key={c}>{c}</th>))}
-            </tr>
-            </thead>
-            <tbody>
-                {row.map((r)=>{
-                    return (
-                    <tr key={r}>
-                        <th>{r}</th>
-                        {col.map((c)=>{
-                            let name = c+''+r
-                            let value = sheet[name]||''
-                            return(<td key={c} className={value[0]==='='?'formula' : undefined}>
-                                <input id={name} onChange={this.hangleInputChangeWrapper(name)} value={value} onKeyDown={this.handleKeyDownWrapper(r, c)}/>
-                                <div className={value[0]?'text':undefined}>{errs[name]||vals[name]}</div>
-                            </td>)
+            <div>
+                <div></div>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>
+                            <button onClick={this.reset}>↻</button>
+                        </th>
+                        {col.map(c=>(<th key={c}>{c}</th>))}
+                    </tr>
+                    </thead>
+                    <tbody>
+                        {row.map((r)=>{
+                            return (
+                            <tr key={r}>
+                                <th>{r}</th>
+                                {col.map((c)=>{
+                                    let name = c+''+r
+                                    let value = sheet[name]||''
+                                    return(<td key={c} className={value[0]==='='?'formula' : undefined}>
+                                        <input id={name} onChange={this.hangleInputChangeWrapper(name)} value={value} onKeyDown={this.handleKeyDownWrapper(r, c)}/>
+                                        <div className={errs[name]?'error':(vals[name]&&vals[name][0])?'text':undefined}>{errs[name]||vals[name]}</div>
+                                    </td>)
+                                })}
+                            </tr>)
                         })}
-                    </tr>)
-                })}
-            </tbody>
-        </table>
+                    </tbody>
+                </table>
+            </div>
         )
     }
 }

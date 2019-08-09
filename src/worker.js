@@ -3,6 +3,7 @@ const workercode = ()=> {
     // eslint-disable-next-line no-restricted-globals
     self.onmessage = ({data}) => {
         // eslint-disable-next-line no-restricted-globals
+        console.log(data)
         sheet  = data
         vals = {}
         errs = {}
@@ -54,8 +55,8 @@ const workercode = ()=> {
         for (const coord in sheet) {
             // eslint-disable-next-line no-restricted-globals
             let t = self[coord]
-            postMessage([errs, vals])
         }
+        postMessage([errs, vals])
     }
 }
 
